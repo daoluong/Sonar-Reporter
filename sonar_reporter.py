@@ -1,3 +1,6 @@
+
+import os
+os.add_dll_directory(r"C:\Program Files\GTK3-Runtime Win64\bin")
 import sys
 import json
 import requests
@@ -14,9 +17,9 @@ TEMPLATE = "reportTemplate.html"
 def generate_report(url, username, password, component_key):
     server_version = get_string(url, username, password, "/api/server/version")
 
-    json_data = get_json(url, username, password, "/api/navigation/component?componentKey=" + component_key)
+    json_data = get_json(url, username, password, "/api/navigation/component?component=" + component_key)
     project_name = json_data["name"]
-    project_organization = json_data["organization"]
+    # project_organization = json_data["organization"]
     project_quality_gate = json_data["qualityGate"]
     project_quality_profiles = json_data["qualityProfiles"]
     project_analysis_date = dateutil.parser.parse(json_data["analysisDate"])
@@ -63,7 +66,7 @@ def generate_report(url, username, password, component_key):
     quality_profiles_table += "</table>"
 
     json_data = get_json(url, username, password, 
-        "/api/measures/component?additionalFields=metrics%2Cperiods&componentKey=" + component_key +
+        "/api/measures/component?additionalFields=metrics%2Cperiods&component=" + component_key +
         "&metricKeys=alert_status%2Cquality_gate_details%2Cbugs%2Cnew_bugs%2Creliability_rating%2Cnew_reliability_rating%2Cvulnerabilities%2Cnew_vulnerabilities%2Csecurity_rating%2Cnew_security_rating%2Ccode_smells%2Cnew_code_smells%2Csqale_rating%2Cnew_maintainability_rating%2Csqale_index%2Cnew_technical_debt%2Ccoverage%2Cnew_coverage%2Cnew_lines_to_cover%2Ctests%2Cduplicated_lines_density%2Cnew_duplicated_lines_density%2Cduplicated_blocks%2Cncloc%2Cncloc_language_distribution%2Cprojects%2Cnew_lines")
     measures = json_data['component']['measures']
     periods = json_data["periods"]
@@ -153,7 +156,7 @@ def generate_report(url, username, password, component_key):
 
             quality_gate_details_table += "</tr></table>"
 
-    json_data = get_json(url, username, password, "/api/issues/search?componentKeys=" + component_key + "&statuses=OPEN&ps=1")
+    json_data = get_json(url, username, password, "/api/issues/search?component=" + component_key + "&statuses=OPEN&ps=1")
     if json_data['total'] == 0:
         print("no data returned - no report will be generated")
     else:
@@ -162,14 +165,14 @@ def generate_report(url, username, password, component_key):
 
         # GET ALL ISSUES (max. 500) OF TYPE VULNERABILITY
         json_vulnerabilities = get_json(url, username, password, 
-            "/api/issues/search?componentKeys=" + component_key + "&statuses=OPEN&ps=500&types=VULNERABILITY")
+            "/api/issues/search?component=" + component_key + "&statuses=OPEN&ps=500&types=VULNERABILITY")
         if json_vulnerabilities['total'] > 0:
             print("found " + str(json_vulnerabilities['total']) + " issues of type VULNERABILITY")
             json_vulnerabilities = filter_json(json_vulnerabilities)
             json_all += json_vulnerabilities
 
         # GET ALL ISSUS (max. 500) OF TYPE BUG
-        json_bugs = get_json(url, username, password, "/api/issues/search?componentKeys=" + component_key + "&statuses=OPEN&ps=500&types=BUG")
+        json_bugs = get_json(url, username, password, "/api/issues/search?component=" + component_key + "&statuses=OPEN&ps=500&types=BUG")
         if json_bugs['total'] > 0:
             print("found " + str(json_bugs['total']) + " issues of type BUG")
             json_bugs = filter_json(json_bugs)
@@ -179,7 +182,7 @@ def generate_report(url, username, password, component_key):
 
         # GET ALL ISSUES (max. 500) OF TYPE CODE_SMELL
         json_codesmells = get_json(url, username, password, 
-            "/api/issues/search?componentKeys=" + component_key + "&statuses=OPEN&ps=500&types=CODE_SMELL")
+            "/api/issues/search?component=" + component_key + "&statuses=OPEN&ps=500&types=CODE_SMELL")
         if json_codesmells['total'] > 0:
             print("found " + str(json_codesmells['total']) + " issues of type CODE_SMELL")
             json_codesmells = filter_json(json_codesmells)
@@ -232,7 +235,8 @@ def generate_report(url, username, password, component_key):
                          "reliability_rating": reliability_rating, "sqale_index": sqale_index,
                          "sqale_rating": sqale_rating, "issue_table": html_issues,
                          "quality_gate_details_table": quality_gate_details_table, "project_name": project_name,
-                         "project_organization": project_organization, "project_version": project_version,
+                        #  "project_organization": project_organization, 
+                         "project_version": project_version,
                          "quality_gates_table": quality_gates_table, "quality_profiles_table": quality_profiles_table,
                          "project_analysis_date": project_analysis_date_utc}
         html_out = template.render(template_vars)

@@ -2,6 +2,7 @@
 this Python tool performs an API call to your SonarQube instance and generates PDF report from the project specified using project key
 
 ## Installation 
+* install follow instruct of weasyprint https://doc.courtbouillon.org/weasyprint/stable/first_steps.html
 * install Python 3
 * install virtualenv
   ```
